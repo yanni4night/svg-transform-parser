@@ -2,12 +2,20 @@
  * Parser for SVG transform.
  * Based on http://www.w3.org/TR/SVG/coords.html#TransformAttribute
  */
+{
+    function merge(obj, src) {
+        var arr =  (Array.isArray(obj)) ? obj : [obj];
+        if (src)
+            arr.unshift(src);
+        return arr
+    }
+}
 
 transformList
-  = wsp* ts:transforms? wsp* { return ts; }
+  = wsp* ts:transforms? wsp* { return merge(ts); }
 
 transforms
-  = t:transform commaWsp+ ts:transforms { for (var k in t) ts[k] = t[k]; return ts; }
+  = t:transform commaWsp + ts:transforms { return merge(ts, t); }
     / transform
 
 transform
@@ -26,21 +34,21 @@ matrix
        d:number commaWsp
        e:number commaWsp
        f:number wsp* ")" { 
-      return {matrix: {a: a, b: b, c: c, d: d, e: e, f: f}};
+      return {key: "matrix", value: {a: a, b: b, c: c, d: d, e: e, f: f}};
     }
 
 translate
   = "translate" wsp* "(" wsp* tx:number ty:commaWspNumber? wsp* ")" {
       var t = {tx: tx};
       if (ty) t.ty = ty;
-      return {translate: t};
+      return {key: "translate", value: t};
     }
 
 scale
   = "scale" wsp* "(" wsp* sx:number sy:commaWspNumber? wsp* ")" {
       var s = {sx: sx};
       if (sy) s.sy = sy;
-      return {scale: s};
+      return {key: "scale", value: s};
     }
 
 rotate
@@ -50,17 +58,17 @@ rotate
         r.cx = c[0];
         r.cy = c[1];
       }
-      return {rotate: r};
+      return {key: "rotate", value: r};
     }
 
 skewX
   = "skewX" wsp* "(" wsp* angle:number wsp* ")" {
-      return {skewX: {angle: angle}};
+      return {key: "skewX", value: {angle: angle}};
     }
 
 skewY
   = "skewY" wsp* "(" wsp* angle:number wsp* ")" {
-      return {skewY: {angle: angle}};
+      return {key: "skewY", value: {angle: angle}};
     }
 
 number
